@@ -1,0 +1,107 @@
+---
+title: "Econ 573: Problem Set 2 - Part 3"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r}
+Homes = read.csv("C:/Users/mateo/OneDrive - University of North Carolina at Chapel Hill/Courses/Spring 2025/Econ 573/homes2004.csv")
+```
+
+*Exercise 1: Plot some relationships and tell a story.*
+
+```{r}
+plot(Homes$ZINC2, Homes$LPRICE, 
+     main = "Log Home Price vs. Income", 
+     xlab = "Income", 
+     ylab = "Log Home Price", 
+     pch = 16, col = "blue")
+
+abline(lm(LPRICE ~ ZINC2, data = Homes), col = "red", lwd = 2)
+
+```
+The scatterplot of log home price (LPRICE) vs. income (ZINC2) shows a positive relationship, indicating that higher-income buyers tend to purchase more expensive homes. However, we can see tha the true relationship is far from linear. This alludes to the fact that income alone doesn't fully determine home value.
+
+```{r}
+boxplot(LPRICE ~ FRSTHO, data = Homes, 
+        main = "Log Home Price by First-Time Buyer Status", 
+        xlab = "First-Time Buyer (0 = No, 1 = Yes)", 
+        ylab = "Log Home Price", 
+        col = c("lightblue", "pink"))
+```
+The boxplot comparing LPRICE across first-time (FRSTHO) vs. repeat buyers reveals that first-time buyers generally purchase lower-priced homes. This aligns with expectations, as first-time buyers often have smaller down payments, lower incomes, or less access to high-value properties compared to repeat buyers who have built more financial resources.
+
+
+```{r}
+hist(Homes$LPRICE, 
+     main = "Distribution of Log Home Prices", 
+     xlab = "Log Home Price", 
+     ylab = "Frequency", 
+     col = "lightblue", 
+     breaks = 30)
+```
+The histogram shows that most home prices are clustered at lower values, meaning cheaper homes are more common. The distribution is slightly skewed right, meaning a smaller number of very expensive homes exist.
+
+*Exercise 2: Regress log value onto all but mortgage and purchases.How many coefficients are jointly significant at 10%? Re-run regression with only the significant covariates, and compare R2 to the full model.*
+
+```{r}
+full_model <- lm(LPRICE ~ . - AMMORT - VALUE, data = Homes)
+summary(full_model)
+```
+The regression results indicate that several factors significantly influence log home price (LPRICE). Key predictors with strong statistical significance (p < 0.001) include income (ZINC2), bathrooms (BATHS), bedrooms (BEDRMS), graduate education (HHGRADGrad), down payment type (DWNPAYprev home), and first-time buyer status (FRSTHOY). Higher income, more bathrooms, and being a repeat homebuyer are associated with higher home values, while first-time buyers tend to purchase lower-priced homes.
+
+Location also plays a significant role, as indicated by state-level variables (STATEGA, STATEIL, STATETX, etc.), many of which have large coefficients and p-values near zero, suggesting regional differences in home prices. Additionally, urban areas (METROurban) are associated with higher home values.
+
+Overall, tjuse are 13 predictors that are jointly significant at the 10% level (p<0.10), meaning they have a statistically significant impact on log home price (LPRICE). These include income (ZINC2), household size (ZADULT), education level (HHGRAD), first-time buyer status (FRSTHO), bathrooms (BATHS), bedrooms (BEDRMS), and down payment type (DWNPAY), which directly influence home values. Additionally, location factors (METRO, STATE) show significant regional variations in pricing. Other notable factors include material of purchase (MATBUY), percent change in price (PER), and transportation accessibility (INTW), suggesting that both personal financial characteristics and external market factors play crucial roles in determining home prices.
+
+```{r}
+reduced_model <- lm(LPRICE ~ ZINC2 + ZADULT + HHGRAD + FRSTHO + BATHS + BEDRMS + DWNPAY + METRO + STATE + MATBUY + PER + INTW, data = Homes)
+
+# Display summary of the reduced model
+summary(reduced_model)
+```
+The adjusted R-Squared dropped slightly from 0.4055 to 0.4015, meaning the reduced model explains almost the same variation in log home prices than the full model. This confirms that the removed predictors did not contribute much explanatory power, making the reduced model more efficient without losing significant predictive ability.
+
+*Exercise 3: Fit a regression for whether the buyer had ≥ 20% down (again, onto everything but AMMORT and LPRICE).  Interpret effects for 1st home buyers and # of bathrooms. Add + describe interaction for 1st home-buyers and #baths*
+
+```{r}
+Homes$DOWN20 <- ifelse(Homes$DWNPAY == "prev home", 1, 0)
+logit_model <- glm(DOWN20 ~ . - AMMORT - LPRICE, data = Homes, family = binomial)
+summary(logit_model)
+
+```
+The coefficient for FRSTHOY is negative (−4.176e−12) but has a p-value of 1.000, meaning it is not statistically significant.
+This suggests that being a first-time buyer does not have a meaningful effect on the likelihood of putting down at least 20%.
+
+The coefficient for BATHS is very small (−2.550e−12) with a p-value of 1.000, meaning it is not statistically significant.
+This suggests that the number of bathrooms in a home does not influence the likelihood of a 20% down payment.
+```{r}
+interaction_model <- glm(DOWN20 ~ FRSTHO * BATHS, data = Homes, family = binomial)
+summary(interaction_model)
+```
+The results show that first-time buyer status (FRSTHOY) has no significant effect on the likelihood of putting down ≥ 20% (p = 0.960). However, more bathrooms (BATHS) significantly increase this likelihood (p < 2e-16), suggesting that buyers of larger, higher-value homes tend to make larger down payments. The interaction term (FRSTHOY * BATHS) is not significant (p = 0.998), meaning the effect of bathrooms on down payment likelihood is the same for both first-time and repeat buyers. This indicates that home size, rather than buyer type, is a key predictor of down payment behavior.
+
+*Exercise 4: Re-fit your model from Q3 for only homes worth > 100k. Compare in-sample fit to R2 for predicting homes worth < 100 k.*
+
+```{r}
+Homes_over_100K <- subset(Homes, VALUE > 100000)
+Homes_under_100K <- subset(Homes, VALUE <= 100000)
+logit_over_100K <- glm(DOWN20 ~ ZINC2 + ZADULT + HHGRAD + FRSTHO + BATHS + BEDRMS + DWNPAY + METRO + STATE + MATBUY + PER + INTW, 
+                        data = Homes_over_100K, family = binomial)
+summary(logit_over_100K)
+
+```
+All predictors except DWNPAYprev home have p-values of 1.000, meaning they are statistically insignificant in explaining the likelihood of putting down ≥ 20%. This suggests that factors like income (ZINC2), home size (BATHS, BEDRMS), education (HHGRAD), and location (STATE) do not meaningfully contribute to predicting down payment size for higher-value homes.
+
+```{r}
+r2_over_100K <- 1 - (logit_over_100K$deviance / logit_over_100K$null.deviance)
+cat("McFadden's R^2 for Homes > $100K:", r2_over_100K, "\n")
+predicted_probs <- predict(logit_over_100K, newdata = Homes_under_100K, type = "response")
+predicted_classes <- ifelse(predicted_probs >= 0.5, 1, 0)
+accuracy <- mean(predicted_classes == Homes_under_100K$DOWN20)
+
+cat("Prediction Accuracy for Homes < $100K:", accuracy, "\n")
+```
+While the model appears perfect, this is almost certainly due to data separation, overfitting, or an overpowering variable rather than truly perfect predictability. 

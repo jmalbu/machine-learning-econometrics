@@ -1,0 +1,265 @@
+---
+title: "Econ 573: Problem Set 1 - Part II"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+Exercise 9
+
+(a) 
+
+```{r}
+college = read.csv("C:/Users/mateo/OneDrive - University of North Carolina at Chapel Hill/Courses/Spring 2025/Econ 573/College.csv") #Read data into R
+```
+
+(b) 
+
+```{r}
+View(college)
+#view data
+rownames(college) <- college[, 1] #creates a column with the names of each university recorded
+View(college)
+college <- college[, -1] #eliminates first column
+View(college)
+```
+
+(c) 
+
+i\.
+
+```{r}
+summary(college) #produces a numerical summary of the variables in the data set
+```
+
+ii\.
+
+```{r}
+pairs(college[, 2:11])
+```
+
+iii\.
+
+```{r}
+attach(college) #makes variables from college available by name.
+Private <- as.factor(Private) #the Private column will be treated as a categorical variable with two levels: "Yes and "No" 
+plot(Outstate ~ Private, #Plots outsate as a function of Private
+     xlab = "Private",
+     ylab= "Outstate",
+     main = "Boxplot of Outstate Tuition by Private/Public") 
+```
+
+iv\.
+
+```{r}
+Elite <- rep("No", nrow(college)) #creates a vector of the same length as the college data set with the value "No"
+Elite[college$Top10perc > 50] <- "Yes" #Check for rows where the percentage of top students is greater than 50%. For those rows, the value in the Elite vectors is changed to "Yes"
+Elite <- as.factor(Elite)
+college <- data.frame(college, Elite) #converts vector into a factor, such that R will treate it as a categoricla grouping variable with two levels: "NO" and "Yes"
+summary(Elite)
+attach(college)
+plot(Outstate ~ Elite,
+     xlab = "Oustate",
+     ylab = "Elite",
+     main = "Boxplot of Outstate Tuition by Elite")
+```
+
+v\.
+
+```{r}
+par(mfrow = c(2, 2)) #Divides the plotting area into 2x2 grid
+attach(college)
+hist(Apps, main = "Histogram of Applications received", xlab = "Applications received", breaks = 20)
+hist(Enroll, main = "Histogram of New Enrollments", xlab = "New Enrollments", breaks = 30)
+hist(F.Undergrad, main = "Histogram of Full-time Undergraduates", xlab = "Full-time Undergraduates", breaks = 15)
+hist(Grad.Rate, main = "Histogram of Graduation Rate", xlab = "Graduation Rate", breaks = 25)
+```
+
+vi\. Continue exploring the data, and provide a brief summary of what you discover
+
+Exercise 9
+
+```{r}
+auto = read.csv("C:/Users/mateo/OneDrive - University of North Carolina at Chapel Hill/Courses/Spring 2025/Econ 573/Auto.csv")
+View(auto)
+```
+
+(a) 
+
+```{r}
+summary(auto)
+str(auto)
+```
+
+Based on the outputs we can conclude that "miles per gallon", "cylinders", "displacement", "weight", and "acceleration" are all quantitative variables. While "name", "horsepower", "year", and "origin" are qualitative variables.
+
+(b) 
+
+```{r}
+range(auto$mpg)
+range(auto$cylinders)
+range(auto$displacement)
+range(auto$weight)
+range(auto$acceleration)
+```
+
+(c) 
+
+```{r}
+mean(auto$mpg)
+sd(auto$mpg)
+mean(auto$cylinders)
+sd(auto$cylinders)
+mean(auto$displacement)
+sd(auto$displacement)
+mean(auto$weight)
+sd(auto$weight)
+mean(auto$acceleration)
+sd(auto$acceleration)
+```
+
+(d) 
+
+```{r}
+auto_sub <- auto[-(10:85), ]
+range(auto_sub$mpg)
+mean(auto_sub$mpg)
+sd(auto_sub$mpg)
+range(auto_sub$cylinders)
+mean(auto_sub$cylinders)
+sd(auto_sub$cylinders)
+range(auto_sub$displacement)
+mean(auto_sub$displacement)
+sd(auto_sub$displacement)
+range(auto_sub$weight)
+mean(auto_sub$weight)
+sd(auto_sub$weight)
+range(auto_sub$horsepower)
+mean(auto_sub$horsepower)
+sd(auto_sub$horsepower)
+range(auto_sub$acceleration)
+mean(auto_sub$acceleration)
+sd(auto_sub$acceleration)
+range(auto_sub$year)
+mean(auto_sub$year)
+sd(auto_sub$year)
+range(auto_sub$origin)
+mean(auto_sub$origin)
+sd(auto_sub$origin)
+range(auto_sub$name)
+mean(auto_sub$name)
+sd(auto_sub$name)
+```
+
+(e) 
+
+```{r}
+auto$horsepower <- as.numeric(auto$horsepower)
+pairs(auto[,1:8])
+```
+
+"miles per gallon" seems to have an inverse relationship with "displacement", "horsepower", and "weight". However, it seems to have a converse relationship with "acceleration" and "year".
+
+"displacement" has an inverse relationship with "acceleration", but a converse relationship with "horsepower" and "weight".
+
+"horsepower" has an inverse relationship with "acceleration", but a converse relationship with "weight".
+
+"acceleration" and "weight" seem to have somewhat of an inverse relationship.
+
+(f) Yes. The plotting suggests that "displacement", "horsepower", "weight", "acceleration", and "year" could be useful when prediction gas mileage. Larger engines with higher horsepower have lower gas mileage as they tend to consumer fuel. Heavier cars also tend to have lower fuel efficiency. Newer cars might have improvements in fuel efficiency.
+
+Exercise 10
+
+```{r}
+boston = read.csv("C:/Users/mateo/OneDrive - University of North Carolina at Chapel Hill/Courses/Spring 2025/Econ 573/Boston.csv")
+
+```
+
+(a) 
+
+```{r}
+dim(boston)
+```
+
+(b) 
+
+```{r}
+pairs(boston)
+```
+
+Both the proportion of non-retail business acres per town and the nitrogen oxides concentration seem inversely related to the weighted mean of distances to five Boston employment centres. However, the later might not be relevant.
+
+(c) 
+
+```{r}
+cor(boston$crim, boston)
+```
+
+The per capital crime rate seems to have a relevant positive correlation with property tax values(tax), the lower status of the population(lstat), and the nitrogen oxides concentration(nox), and the proportion of non-retail business acres per town(indus). While it also appears to have a weaker negative correlation with the mean of distances to five Boston employment centres (dis) and the median value of owner-occupied homes (medv) that might turn out to be relevant.
+
+(d) 
+
+```{r}
+summary(boston)
+boxplot(boston$crim, main="Crime Rate")
+boxplot(boston$tax, main="Tax Rate")
+boxplot(boston$ptratio, main="Pupil-Teacher Ratio")
+
+
+```
+
+The data for crime rates shows that the majority of the data clusters at the bottom, such that most census tracts have lower crime rates. We observe that the mean is 3.61352 and the maximum is 88.9762. The 3rd quantile representing only represents up to 3.67708. There is a few outliers with particularly high crime rates.
+
+For tax rates, the range is from 187 to 711, with the mean being 408.2, which maintains that the distribution is semi-uniform.
+
+For pupil-teacher ratios tha range is from 12.60 to 22, with the mean being 18.46. It seems as it is somewhat skewed towards higher values.
+
+(e) 
+
+```{r}
+sum(boston$chas == 1)
+```
+
+35 census tracts in the data set bound the Charles Rivers.
+
+(f) 
+
+```{r}
+median(boston$ptratio)
+```
+
+The median pupil-teacher ration is 19.05
+
+(g) 
+
+```{r}
+lowest_medv_index <- which.min(boston$medv)
+lowest_medv_index <- boston[lowest_medv_index, ]
+lowest_medv_index
+range(boston$crim)
+range(boston$zn)
+range(boston$indus)
+range(boston$chas)
+range(boston$nox)
+range(boston$rm)
+range(boston$age)
+range(boston$dis)
+range(boston$rad)
+range(boston$tax)
+range(boston$ptratio)
+range(boston$lstat)
+summary(boston)
+summary(boston$lstat)
+```
+
+The census track with lowest median value of owner-occupied homes only has 5. In terms of crime rates, the value is way above the mean, at a relatively higher value of 38.3518. However, not as high as the maximum of 88.97620. In terms of zn it's at the minimum of 0. For indus its at the start of the 3rd quintile, above the mean but below the maximum. It's not bound by the Charles River. It's nox value is above the 3rd quintile, but below the maximum. The rm variable is below the mean but above the minimum. It's at the maximum age for census tracks at 100. The dis is close to the minimum. The rad is above the minimum but below the 1st quintile. Both the tax and the ptratio are at their 3rd quintiles. The lstat is below the 1st quintile.
+
+(h)
+
+```{r}
+sum(boston$rm >7)
+sum(boston$rm >8)
+```
+
+64 census tracts in the data set average more than seven rooms per dwelling, while only 13 average more than eight rooms per dwelling.
