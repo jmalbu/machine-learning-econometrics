@@ -37,7 +37,3 @@ This folder contains all deliverables for Problem Set 1.
 ## Tools Used
 
 - `R`, `ggplot2`, `dplyr`, `readr`, `broom`, `tidyverse`
-
----
-
-*Note: This assignment was completed as part of a graduate-level course at UNC. All datasets are academic or simulated.
