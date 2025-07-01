@@ -1,0 +1,288 @@
+---
+title: "Econ 573: Problem Set 5"
+author: Juan M. Alvarez
+output:
+  html_document:
+    df_print: paged
+---
+
+## Part I
+
+### Exercise 3
+
+```{r}
+# Creating a data frame with 6 observations and 2 features (X1 and X2)
+data <- data.frame(
+  Obs = 1:6,                 # Observation number
+  X1 = c(1, 1, 0, 5, 6, 4),  # First feature
+  X2 = c(4, 3, 4, 1, 2, 0)   # Second feature
+)
+```
+
+(a) 
+
+```{r}
+# Plotting the observations
+plot(data$X1, data$X2, col = "black", pch = 19, xlab = "X1", ylab = "X2", main = "Plot of Observations")
+
+# Adding the observation number in each point
+text(data$X1, data$X2, labels = data$Obs, pos = 3)
+```
+
+(b)
+
+```{r}
+# Ensuring results are reproducible
+set.seed(123) 
+
+# Randomly assigning each point to cluster 1 or 2
+data$cluster <- sample(1:2, size = nrow(data), replace = TRUE)
+data
+```
+
+(c)
+
+```{r}
+# Computing centroids for each cluster
+centroids <- aggregate(cbind(X1, X2) ~ cluster, data = data, FUN = mean)
+centroids
+```
+
+(d)
+
+```{r}
+# Assigning each observation to the centroid to which it is closest (in terms of Euclidean distance)
+assign_clusters <- function(df, centroids) {
+  dist_matrix <- as.matrix(dist(rbind(centroids[, -1], df[, c("X1", "X2")])))
+  dist_matrix <- dist_matrix[-c(1:2), 1:2]
+  df$cluster <- apply(dist_matrix, 1, which.min)
+  return(df)
+}
+
+data <- assign_clusters(data, centroids)
+data
+
+```
+
+(e)
+
+```{r}
+# Iteratively repeating the previous two steps until the answers obtained stop changing
+repeat {
+  old_clusters <- data$cluster
+  centroids <- aggregate(cbind(X1, X2) ~ cluster, data = data, FUN = mean)
+  data <- assign_clusters(data, centroids)
+  
+  if (all(old_clusters == data$cluster)) break
+}
+data
+
+```
+
+(f)
+
+```{r}
+# Plotting the clusters
+plot(data$X1, data$X2, col = data$cluster, pch = 19,
+     xlab = "X1", ylab = "X2", main = "Final Cluster Assignments")
+
+text(data$X1, data$X2, labels = data$Obs, pos = 3)
+
+```
+
+
+### Exercise 10
+
+(a)
+```{r}
+set.seed(123)  # for reproducibility
+
+# 20 observations per class, 50 variables
+n <- 20
+p <- 50
+
+# Generate 3 clusters with different means
+class1 <- matrix(rnorm(n * p, mean = 0), nrow = n)
+class2 <- matrix(rnorm(n * p, mean = 2), nrow = n)
+class3 <- matrix(rnorm(n * p, mean = -2), nrow = n)
+
+# Combine into one dataset
+X <- rbind(class1, class2, class3)
+
+# Create class labels
+true_labels <- c(rep(1, n), rep(2, n), rep(3, n))
+
+```
+
+(b)
+```{r}
+library(ggplot2)
+```
+
+```{r}
+# Run PCA
+pca_result <- prcomp(X, scale. = TRUE)
+
+# Plot first two principal components
+pc_data <- data.frame(pca_result$x[, 1:2], class = as.factor(true_labels))
+
+ggplot(pc_data, aes(x = PC1, y = PC2, color = class)) +
+  geom_point(size = 2) +
+  ggtitle("PCA of Simulated Data") +
+  theme_minimal()
+
+```
+(c)
+
+```{r}
+k3 <- kmeans(X, centers = 3, nstart = 20)
+table(true_labels, k3$cluster)
+```
+The K-means clustering with K=3 accurately identified the three distinct groups in the simulated data. Although the cluster labels (1, 2, 3) assigned by the algorithm differ from the true class labels, the contingency table shows a perfect one-to-one correspondence between each true class and a unique cluster. This result confirms that K-means was effective at recovering the underlying class structure in the dataset.
+
+(d)
+
+```{r}
+k2 <- kmeans(X, centers = 2, nstart = 20)
+table(true_labels, k2$cluster)
+```
+When applying K-means clustering with 
+K=2, the algorithm grouped classes 1 and 2 together into a single cluster, while class 3 was assigned to its own distinct cluster. This suggests that the first two classes are more similar to each other in the feature space compared to class 3, which appears more distinct. However, since there are actually three true classes, setting 
+K=2 leads to under-clustering and a loss of important class structure.
+
+(e)
+
+```{r}
+k4 <- kmeans(X, centers = 4, nstart = 20)
+table(true_labels, k4$cluster)
+
+```
+When clustering with K=4, K-means split one of the true classes (class 2) into two separate clusters, assigning 8 observations to one and 12 to another. Meanwhile, classes 1 and 3 each remained grouped together in their own clusters. This result suggests that class 2 may contain internal variation that K-means interprets as two subgroups. However, since the true number of classes is three, setting K=4 leads to over-clustering, dividing the data more than necessary.
+
+(f)
+```{r}
+k3_pca <- kmeans(pc_data, centers = 3, nstart = 20)
+table(true_labels, k3_pca$cluster)
+```
+Clustering on the reduced data was highly effective and yielded the same result as clustering on the full dataset. This suggests that PCA not only preserved the class structure but also simplified the data without losing important clustering information.
+
+(g)
+```{r}
+X_scaled <- scale(X)
+k3_scaled <- kmeans(X_scaled, centers = 3, nstart = 20)
+table(true_labels, k3_scaled$cluster)
+```
+The results from part (g) were identical to those suggested in part (b). In part (b), PCA showed clear separation between the three classes, and in part (g), K-means clustering on the scaled data achieved perfect classification. This confirms that scaling preserved the structure of the data and ensured equal contribution of all variables, while PCA effectively visualized that structure.
+
+## Part 2
+```{r}
+library(corrplot)
+```
+
+```{r}
+fx <- read.csv("C:/Users/mateo/Downloads/Fxmonthly.csv")
+sp500 <- read.csv("C:/Users/mateo/Downloads/sp500.csv")
+fx_returns <- (fx[2:120, ] - fx[1:119, ]) / fx[1:119, ]
+```
+
+### 1)
+```{r}
+cor_fx <- cor(fx_returns)
+corrplot(cor(fx_returns), method = "circle", type = "upper",
+         tl.col = "black",
+         tl.cex = 0.6,
+         number.cex = 0.6,
+         mar = c(0, 0, 1, 0))
+```
+The correlation matrix of the FX return variables shows that many currency pairs are moderately to highly correlated with one another. This suggests the presence of underlying common factors driving movements across multiple currencies.
+
+This high degree of correlation makes Principal Component Analysis (PCA) an appropriate technique for this dataset. PCA is most effective when variables are correlated, as it reduces redundancy by capturing the shared variance in fewer uncorrelated components. In this case, PCA can help identify the main latent factors influencing international currency movements, simplifying the analysis without losing significant information.
+
+### 2)
+```{r}
+pca_fx <- prcomp(fx_returns, scale. = TRUE)
+plot(pca_fx, type = "l")
+biplot(pca_fx, scale = 0, cex = 0.6)
+```
+The first plot shows that the first principal component (PC1) explains the majority of the variance in the FX returns data, followed by a steep drop-off. This suggests that PC1 captures a dominant underlying factor driving currency movements.
+
+In the biplot, the currency return variables (red arrows) cluster together and point in similar directions, suggesting strong correlations among them. The length of the arrows indicates which currencies contribute most to PC1 and PC2, such as exjpus and exhkus, which may reflect influential currency movements.
+
+### 3)
+
+```{r}
+library(glmnet)
+sp500_returns <- (sp500[2:120, 2] - sp500[1:119, 2]) / sp500[1:119, 2]
+```
+
+```{r}
+pc_scores <- pca_fx$x[, 1:3]
+reg_data <- data.frame(SP500 = sp500_returns, pc_scores)
+
+model_glm <- lm(SP500 ~ ., data = reg_data)
+summary(model_glm)
+```
+```{r}
+library(glmnet)
+
+x <- as.matrix(pc_scores)
+y <- as.vector(sp500_returns)
+
+complete_cases <- complete.cases(x, y)
+x <- x[complete_cases, ]
+y <- y[complete_cases]
+
+lasso_fit <- cv.glmnet(x, y, alpha = 1)
+
+lasso_fit$lambda.min
+
+final_lasso <- glmnet(x, y, alpha = 1, lambda = lasso_fit$lambda.min)
+coef(final_lasso)
+```
+When regressing S&P 500 returns on the first few FX principal components, we found no statistically significant relationships, and lasso regression selected no components. This implies that the latent factors driving currency movements may not strongly predict US equity performance in our dataset. 
+
+### 4)
+```{r}
+complete_rows <- complete.cases(fx_returns, sp500_returns)
+fx_clean <- fx_returns[complete_rows, ]
+sp500_clean <- sp500_returns[complete_rows]
+```
+
+```{r}
+
+
+x_fx <- as.matrix(fx_clean)
+y_fx <- as.vector(sp500_clean)
+
+lasso_fx <- cv.glmnet(x_fx, y_fx, alpha = 1)
+
+best_lambda_fx <- lasso_fx$lambda.min
+
+
+final_lasso_fx <- glmnet(x_fx, y_fx, alpha = 1, lambda = best_lambda_fx)
+
+coef(final_lasso_fx)
+
+```
+In this analysis, PCR identified PCs with modest positive associations, though not statistically significant, while lasso excluded all predictors, highlighting the limited predictive power of individual currencies for SP500 performance.
+
+### bonus step:
+
+```{r}
+library(pls)
+```
+```{r}
+df_pls <- data.frame(sp500 = sp500_clean, fx_clean)
+pls_model <- plsr(sp500 ~ ., data = df_pls, scale = TRUE, validation = "CV")
+summary(pls_model)
+validationplot(pls_model, val.type = "RMSEP")
+```
+
+```{r}
+coef(pls_model, ncomp = 4)
+
+preds <- predict(pls_model, ncomp = 4)
+r2_pls <- cor(preds, sp500_clean)^2
+r2_pls
+```
+Unlike PCA, which captured overall variance in currency returns, and lasso, which identified no predictive covariates, PLS successfully extracted components from currency returns that jointly predict nearly 20% of S&P 500 return variance. The analysis reveals that appreciation of emerging market currencies such as the Mexican peso and South Korean won tend to align with positive US equity returns, whereas movements in the British pound and Indian rupee show a negative relationship.
