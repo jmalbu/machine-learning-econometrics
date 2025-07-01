@@ -1,6 +1,6 @@
 # Problem Set 1 — Introduction to Statistical Learning
 
-This folder contains all deliverables for Problem Set 1 of the Machine Learning and Econometrics course (ECON 573), taught by Prof. Andrii Babii at UNC Chapel Hill.
+This folder contains all deliverables for Problem Set 1.
 
 ---
 
@@ -24,18 +24,20 @@ This folder contains all deliverables for Problem Set 1 of the Machine Learning 
 
 ---
 
-## 📁 Files
+## Files
 
-- `Econ 573_Problem Set 1.pdf` — Combined PDF with all three parts of the assignment
-- `Econ473_ProblemSet1_PartII.Rmd` — RMarkdown file for Part II
-- `Econ573_ProblemSet1_PartIII.Rmd` — RMarkdown file for Part III
+- `part1.pdf` — Combined PDF with all three parts of the assignment
+- `part2.Rmd` — RMarkdown file for Part II (code)
+- `part2.pdf` — Knitted PDF output of Part II
+- `part3.Rmd` — RMarkdown file for Part III (code)
+- `part3.pdf` — Knitted PDF output of Part III
 
 ---
 
-## 📊 Tools Used
+## Tools Used
 
 - `R`, `ggplot2`, `dplyr`, `readr`, `broom`, `tidyverse`
 
 ---
 
-📌 *Note: This assignment was completed as part of a graduate-level course at UNC. All datasets are academic or simulated.
+*Note: This assignment was completed as part of a graduate-level course at UNC. All datasets are academic or simulated.
