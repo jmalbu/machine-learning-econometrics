@@ -1,5 +1,5 @@
 
-# Problem Set 2 — Regression, Model Evaluation, and Feature Engineering
+# Problem Set 2
 
 This folder contains all deliverables for Problem Set 2.
 
@@ -7,23 +7,30 @@ This folder contains all deliverables for Problem Set 2.
 
 ## Topics Covered
 
-**Part I**: Conceptual exercises from *An Introduction to Statistical Learning (ISL)*  
-- Overfitting vs. underfitting  
-- Bias-variance tradeoff  
-- Training vs. test error dynamics  
-- Interpreting model flexibility
+**Part I**: Conceptual and theoretical exercises from *An Introduction to Statistical Learning (ISL)*, Chapter 3  
+- Interpretation of p-values in multiple linear regression (TV, radio, newspaper advertising and sales)  
+- Reasoning through interaction effects in salary prediction models (GPA × IQ, GPA × education level)  
+- Prediction and interpretation of coefficients in multivariate models  
+- Bias-variance tradeoff and model flexibility  
+- Training vs. test error behavior in linear vs. polynomial regression  
+- Overfitting, underfitting, and the implications of sample size on model complexity   
 
-**Part II**: Polynomial regression and model evaluation in R  
-- Fitting polynomial models up to degree 5  
-- Residual diagnostics and goodness of fit  
-- Cross-validation to select the optimal degree  
-- RMSE and R² for model comparison
+**Part II**: Applied linear regression modeling using the *Auto* and *Boston* datasets  
+- Simple and multiple linear regression  
+- Model interpretation and statistical inference  
+- Diagnostic plots and model assumptions  
+- Interaction terms and multicollinearity  
+- Variable transformations (log, square root, quadratic)  
+- Univariate vs. multivariate regression comparison  
+- Detection of non-linear relationships with polynomial terms  
 
-**Part III**: Multivariate regression with county-level data  
-- Predicting gas station density in North Carolina counties  
-- Identifying and interpreting significant socioeconomic predictors  
-- Evaluating models with RMSE and R² metrics  
-- Communicating results using plots and tables
+**Part III**: Modeling home prices and buyer behavior using the *Homes 2004* dataset  
+- Visualized relationships between income, buyer status, and log home prices  
+- Interpreted full vs. reduced multiple regression models for log home price  
+- Identified statistically significant predictors and compared model performance (Adjusted R²)  
+- Built logistic regression models to predict likelihood of ≥20% down payments  
+- Assessed effect of first-time buyer status, bathrooms, and their interaction  
+- Evaluated logistic model performance on high-value vs. low-value home subsets  
 
 ---
 
