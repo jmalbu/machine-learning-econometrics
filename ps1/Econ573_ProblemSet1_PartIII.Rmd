@@ -1,0 +1,67 @@
+---
+title: "Econ573_ProblemSet1_PartIII"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+1.  Exploring Data
+
+    prices are elevated in all regions, and we see that brownies flavor is the most sold flavor.
+
+```{r}
+barplot(table(benjer$flavor_descr), border = NA, las = 2)
+```
+
+```{r}
+hist(y)
+hist(priceper1)
+plot(y ~ benjer$region)
+```
+
+2.  
+
+3.  Regression Model
+
+    ```{r}
+    summary(fit)
+    ```
+
+    The refine the model, we can remove the flavor_descr variable to simplify the model. We can also remove other non-significant variables like race, hispanic_origin, and dishawasher.
+
+    ```{r}
+    fit2 <- glm(y ~ . - flavor_descr, data = x)
+    summary(fit2)
+    fit3 <- glm(y ~ . - flavor_descr - race - dishwasher - hispanic_origin, data = x)
+    summary(fit3)
+
+    ```
+
+    Now we compare the models using AIC/BIC to see which one best fits the data.
+
+    ```{r}
+    n <- nrow(x)
+    BIC <- c(
+      reg1 = extractAIC(fit, k = log(n))[2],
+      reg2 = extractAIC(fit2, k = log(n))[2],
+      reg3 = extractAIC(fit3, k = log(n))[2]
+    )
+
+    # Model probabilities
+    eBIC <- exp(-0.5 * (BIC - min(BIC)))
+    probs <- eBIC / sum(eBIC)
+    round(probs, 5)
+
+    ```
+
+    The simpler model (3) is better.
+
+<!-- -->
+
+3.  d
+
+    ```{r}
+    summary(fit)
+    ```
+
+Significant variables include: (Intercept), flavor_descrCINNAMON BUNS, flavor_descrCOFFEE, flavor_descrCREME BRULEE, flavor_descrHEATH CRUNCH, flavor_descrMINT CHC CHUNK, flavor_descrONE CSK BROWNIE, flavor_descrPUMPKIN CSK, flavor_descrSMORES, flavor_descrTURTLE SOUP, flavor_descrVAN, size1_descr32.0 MLOZ, household_income, household_size, usecoupTRUE, couponper1, regionCentral, regionSouth, regionWest, marriedTRUE, raceblack, raceother, microwaveTRUE, sfhTRUE, internetTRUE, tvcableTRUE
