@@ -1,0 +1,331 @@
+---
+title: "Econ 573 Project Mateo"
+author: Juan M. Alvarez
+output:
+  html_document:
+    df_print: paged
+---
+
+# Variable Selection 
+
+## Best Subset Selection
+
+```{r}
+# Loading our regularized data
+Gas0 <- read.csv("C:/Users/mateo/nc_gas_scaled.csv", na.strings = "?", stringsAsFactors = T)
+# Getting rid of the column with county names.
+Gas <- subset(Gas0, select = -county)
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval"))] # getting rid of aliasing
+```
+
+We perform best subset selection on the data with aliasing. 
+
+```{r}
+library(leaps)
+```
+
+
+```{r}
+regfit.full <- regsubsets(gas ~ ., data = Gas, nvmax = 35)
+reg.summary <- summary(regfit.full)
+reg.summary
+```
+We observe that aiw, upop, fpov, hisp, awpw, aaepw, shigh and retax seem to be important as they are included in at least 2/3 of the models. Variables such as pop05, mhv, white, black, and crime are seem somewaht important as they are included in at least 1/2 of the models.
+
+```{r}
+names(reg.summary)
+```
+```{r}
+reg.summary$rsq
+reg.summary$rss
+```
+As expected, the R^2 statistic increases monotonically as more variables are added to the model. Conversely, the RSS decreases monotonically as more variables are added.
+
+```{r}
+reg.summary$adjr2
+max(reg.summary$adjr2)
+which.max(reg.summary$adjr2)
+```
+However, we see that the maximum value for adjusted R^2 is 0.9792946 which is achieved by the model with 12 variables, and after that it decreases as we add more variables.
+
+```{r}
+coef(regfit.full, 12)
+
+```
+
+
+We continue to compare different statistics such as the Cp and the BIC to compare goodness of fit.
+
+```{r}
+plot(reg.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+points(12, reg.summary$adjr2[12], col = "red", cex = 2, pch = 20)
+```
+```{r}
+reg.summary$cp
+min(reg.summary$cp)
+which.min(reg.summary$cp)
+```
+We see that the model with the least Cp value is the one with 8 variables.
+
+```{r}
+plot(reg.summary$cp, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+points(8, reg.summary$cp[8], col = "red", cex = 2, pch = 20)
+```
+
+
+```{r}
+reg.summary$bic
+min(reg.summary$bic)
+which.min(reg.summary$bic)
+```
+```{r}
+plot(reg.summary$bic, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+points(8, reg.summary$bic[8], col = "red", cex = 2, pch = 20)
+```
+```{r}
+coef(regfit.full, 8)
+```
+
+```{r}
+plot(regfit.full, scale = "r2")
+plot(regfit.full, scale = "adjr2")
+plot(regfit.full, scale = "Cp")
+plot(regfit.full, scale = "bic")
+```
+plots of the variables included (black sqaures) according to the optimal model associated with that statistic. 
+
+Conclusion, Choose the one with 8 variables.
+
+## Forward and Backward Stepwise Selection
+
+### Forward
+```{r}
+regfit.fwd <- regsubsets(gas ~ ., data = Gas, nvmax = 35, method = "forward")
+fwd.summary <- summary(regfit.fwd)
+fwd.summary
+```
+
+```{r}
+names(fwd.summary)
+```
+```{r}
+# Comparing R^2 and RSS of all the models
+fwd.summary$rsq
+fwd.summary$rss
+which.min(fwd.summary$rss)
+```
+We compare statistic for model fit
+```{r}
+# Comparing Adjusted R^2
+fwd.summary$adjr2
+max(fwd.summary$adjr2)
+which.max(fwd.summary$adjr2)
+```
+Model with 16 variables has the highest R^2.
+
+```{r}
+#Comparing BIC
+fwd.summary$bic
+min(fwd.summary$bic)
+which.min(fwd.summary$bic)
+
+```
+
+
+```{r}
+#Comparing cp
+fwd.summary$cp
+min(fwd.summary$cp)
+which.min(fwd.summary$cp)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(fwd.summary$rss, xlab = "Number of Variables", ylab = "RSS", type = "l")
+points(29, fwd.summary$rss[29], col = "red", cex = 2, pch = 20)
+plot(fwd.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+points(16, fwd.summary$adjr2[16], col = "red", cex = 2, pch = 20)
+plot(fwd.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+points(9, fwd.summary$bic[9], col = "red", cex = 2, pch = 20)
+plot(fwd.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+points(11, fwd.summary$cp[11], col = "red", cex = 2, pch = 20)
+```
+
+
+
+```{r}
+coef(regfit.fwd, 9)
+coef(regfit.fwd, 11)
+coef(regfit.fwd, 16)
+```
+
+### Backward
+
+```{r}
+regfit.bwd <- regsubsets(gas ~ ., data = Gas, nvmax = 35, method = "backward")
+bwd.summary <- summary(regfit.bwd)
+bwd.summary
+```
+
+```{r}
+names(bwd.summary)
+```
+
+```{r}
+# Comparing R^2 and RSS of all the models
+bwd.summary$rsq
+bwd.summary$rss
+min(bwd.summary$rss)
+which.min(bwd.summary$rss)
+```
+We compare statistic for model fit
+
+```{r}
+# Comparing Adjusted R^2
+bwd.summary$adjr2
+max(bwd.summary$adjr2)
+which.max(bwd.summary$adjr2)
+```
+Model with 15 variables has the highest R^2.
+
+```{r}
+#Comparing BIC
+bwd.summary$bic
+min(bwd.summary$bic)
+which.min(bwd.summary$bic)
+```
+
+
+```{r}
+#Comparing Cp
+bwd.summary$cp
+min(bwd.summary$cp)
+which.min(bwd.summary$cp)
+```
+
+```{r}
+coef(regfit.bwd, 6)
+coef(regfit.bwd, 9)
+coef(regfit.bwd, 15)
+```
+```{r}
+par(mfrow = c(2, 2))
+plot(bwd.summary$rss, xlab = "Number of Variables", ylab = "RSS", type = "l")
+points(29, bwd.summary$rss[29], col = "red", cex = 2, pch = 20)
+plot(bwd.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+points(15, bwd.summary$adjr2[15], col = "red", cex = 2, pch = 20)
+plot(bwd.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+points(6, bwd.summary$bic[6], col = "red", cex = 2, pch = 20)
+plot(bwd.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+points(9, bwd.summary$cp[9], col = "red", cex = 2, pch = 20)
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(regfit.bwd, scale = "r2")
+plot(regfit.bwd, scale = "adjr2")
+plot(regfit.bwd, scale = "Cp")
+plot(regfit.bwd, scale = "bic")
+```
+## Choosing Among Models Using the Validation-Set Approach and Cross-Validation
+
+### Validation-Set Approach
+Problem: very dependant on what observations are in the training and the test sets.
+
+```{r}
+#Splitting the sample
+set.seed(6)
+train <- sample(c(TRUE, FALSE), nrow(Gas),
+replace = TRUE)
+test <- (!train)
+```
+
+```{r}
+regfit.best <- regsubsets(gas ~ .,
+data = Gas[train, ], nvmax = 29)
+```
+
+```{r}
+test.mat <- model.matrix(gas ~ ., data = Gas[test, ])
+```
+
+```{r}
+val.errors <- rep(NA, 29)
+
+for (i in 1:29) {
+  coefi <- coef(regfit.best, id = i)
+  pred <- test.mat[, names(coefi)] %*% coefi
+  val.errors[i] <- mean((Gas$gas[test] - pred)^2)
+}
+val.errors
+which.min(val.errors)
+```
+
+```{r}
+predict.regsubsets <- function(object, newdata , id, ...) {
+form <- as.formula(object$call[[2]])
+mat <- model.matrix(form, newdata)
+coefi <- coef(object, id = id)
+xvars <- names(coefi)
+mat[, xvars] %*% coefi
+}
+```
+
+```{r}
+regfit.best <- regsubsets(gas ~ ., data = Gas, nvmax = 29)
+coef(regfit.best, 3)
+```
+
+### Cross-Validation
+```{r}
+k <- 10
+n <- nrow(Gas)
+set.seed(1)
+folds <- sample(rep(1:k, length = n))
+cv.errors <- matrix(NA, k, 29, dimnames = list(NULL, paste(1:29)))
+```
+
+NoW, we write a for loop that perfoms cross-validation for each size.
+```{r}
+for (j in 1:k) {
+best.fit <- regsubsets(gas ~ .,
+data = Gas[folds != j, ], nvmax = 29)
+for (i in 1:29) {
+pred <- predict(best.fit, Gas[folds == j, ], id = i)
+cv.errors[j, i] <-
+mean((Gas$gas[folds == j] - pred)^2) 
+}
+}
+```
+
+Averaging over the colums of the matrix in order to obtain a vector for shich the ith element is the cross-validation error for the i-variable model.
+
+```{r}
+mean.cv.errors <- apply(cv.errors, 2, mean)
+mean.cv.errors
+```
+```{r}
+par(mfrow = c(1, 1))
+plot(mean.cv.errors, type = "b")
+```
+
+## Performing best subest selection on the full datta set in order to obaain the 4-variable model.
+
+```{r}
+reg.best <- regsubsets(gas ~ ., data = Gas,
+nvmax = 29)
+coef(reg.best, 4)
+```
+So the best model has 4 variables: fpov, awpw, aaepw, and shigh.
+
+```{r}
+reg.best.summary <- summary(reg.best)
+reg.best.summary
+```
+```{r}
+reg.best.summary$rss[4]
+reg.best.summary$rsq[4]
+reg.best.summary$adjr2[4]
+reg.best.summary$bic[4]
+reg.best.summary$cp[4]
+```
+

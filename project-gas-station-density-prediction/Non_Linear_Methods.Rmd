@@ -1,0 +1,674 @@
+---
+title: "Econ 573 Project Mateo"
+author: Juan M. Alvarez
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(boot)
+library(leaps)
+```
+
+
+```{r}
+# Loading our regularized data & raw data
+Gas0 <- read.csv("C:/Users/mateo/nc_gas_scaled.csv", na.strings = "?", stringsAsFactors = T)
+Gas_raw <- read.csv("C:/Users/mateo/RawData.csv", na.strings = "?", stringsAsFactors = T)
+View(Gas_raw)
+```
+
+```{r}
+# Set up a 3x3 plotting grid
+par(mfrow = c(2, 4), mar = c(4, 4, 3, 1))  # 2 rows, 3 columns, adjusted margins
+
+# Scatterplot: gas vs fpov
+plot(Gas0$fpov, Gas0$gas,
+     main = "Gas vs fpov",
+     xlab = "Families below poverty line",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$fpov, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs ppov
+plot(Gas0$ppov, Gas0$gas,
+     main = "Gas vs ppov",
+     xlab = "People below poverty line",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$ppov, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs white
+plot(Gas0$white, Gas0$gas,
+     main = "Gas vs white",
+     xlab = "White population (%)",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$white, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs munp
+plot(Gas0$munp, Gas0$gas,
+     main = "Gas vs munp",
+     xlab = "Municipal road length",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$munp, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs shigh
+plot(Gas0$shigh, Gas0$gas,
+     main = "Gas vs shigh",
+     xlab = "State highway length",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$shigh, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs retax
+plot(Gas0$retax, Gas0$gas,
+     main = "Gas vs retax",
+     xlab = "Real estate taxes (mortgaged)",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$retax, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs awpw
+plot(Gas0$awpw, Gas0$gas,
+     main = "Gas vs awpw",
+     xlab = "Annual Wages by 
+     Place of Work",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$awpw, Gas0$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs aaepw
+plot(Gas0$aaepw, Gas0$gas,
+     main = "Gas vs aaepw",
+     xlab = "Average Annual Employment 
+     by Place of Work",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas0$aaepw, Gas0$gas), col = "blue", lwd = 2)
+
+```
+
+
+```{r}
+# Choosing the model we get from lasso.
+Gas_lasso <- subset(Gas0, select = c("fpov", "ppov", "white", "munp", "shigh", "retax", "gas"))
+vars <- c("fpov", "ppov", "white", "munp", "shigh", "retax")
+```
+
+```{r}
+# Set up a 2x3 plotting grid
+par(mfrow = c(2, 3), mar = c(4, 4, 3, 1))  # 2 rows, 3 columns, adjusted margins
+
+# Scatterplot: gas vs fpov
+plot(Gas_lasso$fpov, Gas_lasso$gas,
+     main = "Gas vs fpov",
+     xlab = "Families below poverty line",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$fpov, Gas_lasso$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs ppov
+plot(Gas_lasso$ppov, Gas_lasso$gas,
+     main = "Gas vs ppov",
+     xlab = "People below poverty line",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$ppov, Gas_lasso$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs white
+plot(Gas_lasso$white, Gas_lasso$gas,
+     main = "Gas vs white",
+     xlab = "White population (%)",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$white, Gas_lasso$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs munp
+plot(Gas_lasso$munp, Gas_lasso$gas,
+     main = "Gas vs munp",
+     xlab = "Municipal road length",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$munp, Gas_lasso$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs shigh
+plot(Gas_lasso$shigh, Gas_lasso$gas,
+     main = "Gas vs shigh",
+     xlab = "State highway length",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$shigh, Gas_lasso$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs retax
+plot(Gas_lasso$retax, Gas_lasso$gas,
+     main = "Gas vs retax",
+     xlab = "Real estate taxes (mortgaged)",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_lasso$retax, Gas_lasso$gas), col = "blue", lwd = 2)
+
+
+```
+We observe several high leverage points in our data, corresponding to urban counties with exceptionally high gas station counts. While these reflect true observations, their influence on model fitting was assessed using leverage diagnostics. We retain these points but supplemented linear models with flexible, robust methods such as GAMs and smoothing splines to mitigate distortion and better capture nonlinear patterns in the remaining data.
+
+
+
+# Linear
+
+```{r}
+lm.fit <- lm(gas ~ ., data = Gas_lasso)
+summary(lm.fit)
+```
+
+
+To explore potential nonlinear effects in the predictors selected by Lasso, we fit a natural spline regression using all six variables with four degrees of freedom each. This allowed for flexible, piecewise-polynomial modeling while maintaining interpretability. Model comparisons indicated improvements in fit over a standard linear model, suggesting that key predictors such as state highway length and poverty levels may exert nonlinear effects on gas station density.
+
+```{r}
+set.seed(6)
+glm.fit <- glm(gas ~ ., data = Gas_lasso)
+cv.error <- cv.glm(Gas_lasso, glm.fit, K = 10)
+cv.error$delta
+```
+
+# Natural Splines
+
+```{r}
+library(splines)
+```
+
+```{r}
+fit_ns <- lm(gas ~ ns(fpov, df = 4) + ns(ppov, df = 4) + ns(white, df = 4) + ns(munp, df = 4) + ns(shigh, df = 4) + ns(retax, df = 4), data = Gas_lasso)
+
+summary(fit_ns)
+```
+The natural spline regression model achieved a remarkably high adjusted R² of 97.1%, indicating that allowing for non-linear relationships improved model performance relative to linear regression. Notably, the number of people below the poverty line, the percentage of white residents, and real estate taxes exhibited strong non-linear effects on gas station density. These variables showed significant higher-order spline terms, suggesting that their influence on gas station counts changes at extreme values. In contrast, other predictors such as families below the poverty line displayed primarily linear relationships.
+
+Linear regression already provided a strong baseline model, with state highway length and the number of people below the poverty line emerging as key linear predictors of gas station counts. However, the natural spline model offered superior performance across all evaluation metrics. Importantly, splines uncovered non-linear effects in variables like white population percentage and real estate taxes that were not statistically significant in the linear model, but became highly significant when allowing for flexible curvature.
+
+```{r}
+set.seed(6)
+
+folds <- sample(rep(1:10, length.out = nrow(Gas_lasso)))
+
+cv_error_ns <- rep(NA, 10)
+
+for (k in 1:10) {
+  
+  train_data <- Gas_lasso[folds != k, ]
+  test_data  <- Gas_lasso[folds == k, ]
+  
+  fit_ns_k <- lm(gas ~ ns(fpov, df = 4) + ns(ppov, df = 4) + ns(white, df = 4) + ns(munp, df = 4) + ns(shigh, df = 4) + ns(retax, df = 4), data = train_data)
+  
+  pred <- predict(fit_ns_k, newdata = test_data)
+  
+  cv_error_ns[k] <- mean((test_data$gas - pred)^2)
+}
+
+cv_error_ns
+mean(cv_error_ns)
+sd(cv_error_ns)
+```
+
+
+
+```{r}
+# Comparing AIC's
+AIC(lm.fit, fit_ns)
+```
+
+Although the natural splines model provided better in-sample fit (higher R², lower residual error), its AIC was slightly higher than the linear model, indicating that the performance gains may not fully justify the increase in model complexity. This suggests that the linear model remains highly competitive, though non-linear modeling revealed important curvature in certain predictors.
+
+```{r}
+anova(lm.fit, fit_ns)
+```
+
+An ANOVA test comparing the linear and natural spline models indicated that while the spline model reduced residual variance, this improvement was only weakly significant (p = 0.0799). This suggests the presence of some non-linear relationships in the data, but also reinforces the strength of the linear model's predictive ability.
+
+```{r}
+# Plotting the spline fits for each variable
+library(sjPlot)
+library(patchwork)
+# Plot the spline effects
+p1 <- plot_model(fit_ns, type = "pred", terms = c("fpov"))
+p2 <- plot_model(fit_ns, type = "pred", terms = c("ppov"))
+p3 <- plot_model(fit_ns, type = "pred", terms = c("white"))
+p4 <- plot_model(fit_ns, type = "pred", terms = c("munp"))
+p5 <- plot_model(fit_ns, type = "pred", terms = c("shigh"))
+p6 <- plot_model(fit_ns, type = "pred", terms = c("retax"))
+(p1 | p2 | p3) / (p4 | p5 | p6)
+
+```
+we can see how the high leverage points distort the relationship.
+
+For multivariable modeling, we proceed with generalized additive models (GAMs), which provide a more flexible and interpretable framework for capturing non-linearity across multiple predictors.
+
+
+# GAM's
+
+The data will decide how non-linear each variable is without having to manually picking degrees of freedom.
+
+```{r}
+library(mgcv)
+library(boot)
+```
+```{r}
+gam_fit <- gam(gas ~ s(fpov) + s(ppov) + s(white) + s(munp) + s(shigh) + s(retax), data = Gas_lasso)
+summary(gam_fit)
+```
+
+The GAM model provided an excellent fit (adj. R² = 0.978), explaining 98.2% of the variance in gas station counts. Results indicated that families below the poverty line (fpov) had a significant linear effect, while people below the poverty line (ppov) did not offer additional predictive value once fpov was included. The percentage of white residents and municipal road length exhibited strong non-linear relationships, suggesting that their effects on gas station density vary across different values. State highway length demonstrated a modest non-linear effect, while real estate taxes showed a weak, borderline-significant non-linear pattern. Overall, the GAM approach effectively captured both linear and non-linear effects, supporting its use over fully linear models or manually specified splines.
+
+```{r}
+
+set.seed(6)
+
+# Create 10 folds
+folds <- sample(rep(1:10, length.out = nrow(Gas_lasso)))
+
+cv_error <- rep(NA, 10)
+
+for (k in 1:10) {
+  
+  # Split data
+  train_data <- Gas_lasso[folds != k, ]
+  test_data  <- Gas_lasso[folds == k, ]
+  
+  # Fit GAM on training data
+  gam_fit_k <- gam(gas ~ s(fpov) + s(ppov) + s(white) + s(munp) + s(shigh) + s(retax), 
+                   data = train_data)
+  
+  # Predict on test data
+  pred <- predict(gam_fit_k, newdata = test_data)
+  
+  # Compute Test Error (MSE)
+  cv_error[k] <- mean((test_data$gas - pred)^2)
+}
+
+# View all CV errors
+cv_error
+
+# Average Test Error across folds
+mean(cv_error)
+```
+Given the limitations of applying cv.glm() to GAMs, we manually performed 10-fold cross-validation. The average test MSE across the 10 folds was approximately [insert mean(cv_error)], providing an unbiased estimate of the model's out-of-sample predictive accuracy.
+
+While the average test MSE of the GAM model was lower than the linear model, we observed substantial variation in performance across folds. In particular, some folds yielded very high prediction errors, suggesting that the GAM may be sensitive to specific data splits or overfitting certain regions of the data. This variability contrasts with the more stable performance observed in the LASSO model."
+
+
+
+```{r}
+plot(1:10, cv_error, type = "b", pch = 19, col = "blue",
+     main = "GAM Test MSE per Fold", xlab = "Fold", ylab = "Test MSE")
+
+```
+
+
+```{r}
+# Automatic plots for each variable
+plot(gam_fit, se = TRUE, shade = TRUE)
+
+```
+
+
+```{r}
+# Check AIC
+AIC(lm.fit, fit_ns, gam_fit)
+
+# Check adjusted R-squared
+summary(gam_fit)$r.sq
+
+```
+Among all models considered, the generalized additive model (GAM) achieved the best overall performance with an AIC of 742.29, substantially lower than both the linear model (AIC = 770.74) and the natural spline model (AIC = 774.12). The GAM effectively captured both linear and non-linear relationships across predictors while maintaining a reasonable level of model complexity (effective degrees of freedom = 18.8). In particular, the variables representing families below the poverty line (fpov) and state highway length (shigh) displayed primarily linear effects, while white population percentage (white) and municipal road length (munp) exhibited substantial non-linear patterns.
+```{r}
+gam.check(gam_fit)
+```
+Diagnostic plots for the final GAM model indicated no major violations of model assumptions. The residuals appeared randomly distributed with stable variance, and the histogram of residuals suggested approximate normality. The response versus fitted values plot showed a strong linear pattern, with only mild deviation at the highest fitted values, consistent with a few urban counties having extreme gas station counts. The basis dimension checks confirmed that the chosen level of smoothness was appropriate, with no evidence of underfitting.
+
+## Trying GAM without ppov
+
+Variables like ppov were not statistically significant within the GAM framework, likely due to their strong correlation with fpov. To assess model parsimony, we compared a reduced GAM excluding ppov, finding that its removal did not substantially degrade model performance. Thus, the final model retained variables that were either significant, theoretically important, or contributed to predictive accuracy.
+
+```{r}
+gam_fit2 <- gam(gas ~ s(fpov) + s(white) + s(munp) + s(shigh) + s(retax),
+                data = Gas_lasso)
+
+summary(gam_fit2)
+
+```
+The final GAM model excluding ppov achieved an adjusted R² of 0.978 and explained 98.2% of the deviance in gas station counts, outperforming all prior models in both fit and simplicity. The analysis revealed that the percentage of families below the poverty line (fpov) had a strong linear effect on gas station density. In contrast, variables such as white population percentage (white) and municipal road length (munp) exhibited significant non-linear relationships, indicating that their effects varied across different ranges of their values. Both state highway length (shigh) and real estate taxes (retax) showed mild non-linear trends, suggesting diminishing or accelerating effects at higher levels. The removal of ppov improved model parsimony without sacrificing predictive performance, further supporting the robustness of the selected predictors.
+
+```{r}
+
+set.seed(6)
+
+# Create 10 folds
+folds <- sample(rep(1:10, length.out = nrow(Gas_lasso)-1))
+
+cv_error2 <- rep(NA, 10)
+
+for (k in 1:10) {
+  
+  # Split data
+  train_data <- Gas_lasso[folds != k, ]
+  test_data  <- Gas_lasso[folds == k, ]
+  
+  # Fit GAM on training data
+  gam_fit_k <- gam(gas ~ s(fpov) + s(white) + s(munp) + s(shigh) + s(retax), 
+                   data = train_data)
+  
+  # Predict on test data
+  pred <- predict(gam_fit_k, newdata = test_data)
+  
+  # Compute Test Error (MSE)
+  cv_error2[k] <- mean((test_data$gas - pred)^2)
+}
+
+# View all CV errors
+cv_error2
+
+# Average Test Error across folds
+mean(cv_error2)
+```
+```{r}
+plot(1:10, cv_error2, type = "b", pch = 19, col = "blue",
+     main = "GAM Test MSE per Fold", xlab = "Fold", ylab = "Test MSE")
+```
+
+
+```{r}
+AIC(gam_fit, gam_fit2)
+```
+
+Given the non-significance of ppov in the initial GAM and its likely redundancy with fpov, we refit the model excluding ppov. This reduced model achieved a slightly lower AIC (741.32 vs 742.29), indicating improved parsimony without sacrificing model fit. As such, the final model retained only variables that were either statistically significant or contributed meaningfully to predictive performance.
+
+# Regression Trees
+
+```{r}
+library(tree)
+```
+
+
+```{r}
+# Fit tree
+tree_fit <- tree(gas ~ fpov + white + munp + shigh + retax, data = Gas_lasso)
+# Summary
+summary(tree_fit)
+```
+```{r}
+plot(tree_fit)
+text(tree_fit, pretty=0)
+
+```
+
+
+```{r}
+#cross-validate to check best size
+cv.tree_fit <- cv.tree(tree_fit)
+
+plot(cv.tree_fit$size, cv.tree_fit$dev, type = "b")
+
+```
+
+The regression tree selected only fpov as the primary splitting variable, highlighting its dominant role in predicting gas station counts. The model identified four distinct poverty thresholds, with higher poverty levels consistently associated with greater numbers of gas stations. While this tree provides a highly interpretable segmentation of the data, its simplicity came at the cost of reduced predictive accuracy, as other variables such as white population percentage, munp, shigh, and retax were not utilized in the tree splits.
+
+# Random Forest
+
+```{r}
+library(randomForest)
+
+set.seed(123)
+
+# Fit forest
+rf_fit <- randomForest(gas ~ fpov + white + munp + shigh + retax, data = Gas_lasso, importance = TRUE)
+
+# View model
+print(rf_fit)
+
+```
+```{r}
+# Variable Importance
+importance(rf_fit)
+varImpPlot(rf_fit)
+```
+The Random Forest model provided strong predictive performance, explaining 89.9% of the variance in gas station counts. The variable importance measures indicated that fpov remained the dominant predictor, consistent with previous models. However, the forest also revealed the importance of variables such as real estate taxes (retax), white population percentage (white), and municipal road length (munp), which were not utilized in the single regression tree but contributed meaningfully across the ensemble of trees. This highlights the ability of Random Forests to capture complex interactions and non-linear effects that simpler models might overlook.
+
+```{r}
+# Regression Tree RMSE
+pred_tree <- predict(tree_fit, Gas_lasso)
+sqrt(mean((Gas_lasso$gas - pred_tree)^2))
+
+# Random Forest RMSE
+pred_rf <- predict(rf_fit, Gas_lasso)
+sqrt(mean((Gas_lasso$gas - pred_rf)^2))
+
+# GAM RMSE
+pred_gam <- predict(gam_fit2, Gas_lasso)
+sqrt(mean((Gas_lasso$gas - pred_gam)^2))
+
+```
+Among all models, the Generalized Additive Model (GAM) achieved the lowest Root Mean Squared Error (RMSE) of 8.24, slightly outperforming the Random Forest (RMSE = 8.85) and substantially outperforming the regression tree (RMSE = 22.56). While the Random Forest captured complex patterns through its ensemble structure, the GAM provided nearly equivalent predictive accuracy with the added benefit of interpretability and explicit non-linear term estimation.
+
+## Using best susbet Selection Model
+
+```{r}
+Gas_bs <- subset(Gas0, select = c("fpov", "awpw", "aaepw", "shigh", "gas"))
+View(Gas_bs)
+```
+
+```{r}
+# Set up a 2x3 plotting grid
+par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))  # 2 rows, 3 columns, adjusted margins
+
+# Scatterplot: gas vs fpov
+plot(Gas_bs$fpov, Gas_bs$gas,
+     main = "Gas vs fpov",
+     xlab = "Families below poverty line",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_bs$fpov, Gas_bs$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs awpw
+plot(Gas_bs$awpw, Gas_bs$gas,
+     main = "Gas vs awpw",
+     xlab = "Annual Wages by Place of Work",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_bs$awpw, Gas_bs$gas), col = "blue", lwd = 2)
+
+# Scatterplot: gas vs aaepw
+plot(Gas_bs$aaepw, Gas_bs$gas,
+     main = "Gas vs ",
+     xlab = "Average Annual Employment by Place of Work",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_bs$aaepw, Gas_bs$gas), col = "blue", lwd = 2)
+
+
+# Scatterplot: gas vs shigh
+plot(Gas_bs$shigh, Gas_bs$gas,
+     main = "Gas vs shigh",
+     xlab = "State highway length",
+     ylab = "Gas Stations",
+     pch = 16, col = "darkgreen")
+lines(lowess(Gas_bs$shigh, Gas_bs$gas), col = "blue", lwd = 2)
+
+
+
+```
+
+# Linear
+
+```{r}
+lm.fit <- lm(gas ~ ., data = Gas_bs)
+summary(lm.fit)
+```
+
+## Cross-Validating Linear
+
+```{r}
+library(boot)
+library(leaps)
+```
+
+```{r}
+set.seed(6)
+glm.fit <- glm(gas ~ ., data = Gas_bs)
+cv.error <- cv.glm(Gas_bs, glm.fit, K = 10)
+cv.error$delta
+```
+Using 10-fold cross-validation on our linear model with all predictors, we estimate the test error to be approximately 110.05. This suggests that, on average, the model's predictions deviate from the true number of gas stations by around 10.5 stations (given that MSE units are squared). The similarity between the raw and bias-corrected error estimates indicates that the model is relatively stable and not heavily overfitting the training data.
+
+# Natural Splines for Best Subset Model
+```{r}
+fit_ns <- lm(gas ~ ns(fpov, df = 4) + ns(awpw, df = 4) + ns(aaepw, df = 4) + ns(shigh, df = 4) , data = Gas_bs)
+summary(fit_ns)
+```
+
+```{r}
+# Comparing AIC's
+AIC(lm.fit, fit_ns)
+```
+
+##  Cross-Validated for Natural Splines 
+
+```{r}
+set.seed(6)
+
+folds <- sample(rep(1:10, length.out = nrow(Gas_bs)))
+
+cv_error_ns <- rep(NA, 10)
+
+for (k in 1:10) {
+  
+  train_data <- Gas_bs[folds != k, ]
+  test_data  <- Gas_bs[folds == k, ]
+  
+  fit_ns_k <- lm(gas ~ ns(fpov, df=4) + ns(awpw, df=4) + ns(aaepw, df=4) + ns(shigh, df=4), 
+                 data = train_data)
+  
+  pred <- predict(fit_ns_k, newdata = test_data)
+  
+  cv_error_ns[k] <- mean((test_data$gas - pred)^2)
+}
+
+cv_error_ns
+mean(cv_error_ns)
+sd(cv_error_ns)
+```
+
+
+# GAM
+
+```{r}
+gam.fit <- gam(gas ~ s(fpov) + s(awpw) + s(aaepw) + s(shigh), data = Gas_bs)
+summary(gam.fit)
+```
+
+```{r}
+
+set.seed(6)
+
+# Create 10 folds
+folds <- sample(rep(1:10, length.out = nrow(Gas_bs)-1))
+
+cv_error <- rep(NA, 10)
+
+for (k in 1:10) {
+  
+  # Split data
+  train_data <- Gas_bs[folds != k, ]
+  test_data  <- Gas_bs[folds == k, ]
+  
+  # Fit GAM on training data
+  gam_fit_k <- gam(gas ~ s(fpov) + s(awpw) + s(aaepw) + s(shigh), 
+                   data = train_data)
+  
+  # Predict on test data
+  pred <- predict(gam_fit_k, newdata = test_data)
+  
+  # Compute Test Error (MSE)
+  cv_error[k] <- mean((test_data$gas - pred)^2)
+}
+
+# View all CV errors
+cv_error
+
+# Average Test Error across folds
+mean(cv_error)
+```
+
+
+```{r}
+# Automatic plots for each variable
+plot(gam.fit, se = TRUE, shade = TRUE)
+
+```
+
+
+```{r}
+# Check AIC
+AIC(lm.fit, fit_ns, gam.fit)
+
+# Check adjusted R-squared
+summary(gam.fit)$r.sq
+
+```
+
+# Regression Trees
+
+```{r}
+# Fit tree
+tree_fit <- tree(gas ~ fpov + awpw + aaepw + shigh, data = Gas_bs)
+# Summary
+summary(tree_fit)
+```
+```{r}
+plot(tree_fit)
+text(tree_fit, pretty=0)
+
+```
+
+
+```{r}
+#cross-validate to check best size
+cv.tree_fit <- cv.tree(tree_fit)
+
+plot(cv.tree_fit$size, cv.tree_fit$dev, type = "b")
+
+```
+# Random Forest
+
+```{r}
+set.seed(123)
+
+# Fit forest
+rf_fit <- randomForest(gas ~ fpov + awpw + aaepw + shigh, data = Gas_bs, importance = TRUE)
+
+# View model
+print(rf_fit)
+```
+
+```{r}
+importance(rf_fit)
+```
+```{r}
+varImpPlot(rf_fit)
+```
+```{r}
+# Regression Tree RMSE
+pred_tree <- predict(tree_fit, Gas_bs)
+sqrt(mean((Gas_bs$gas - pred_tree)^2))
+```
+```{r}
+# Random Forest RMSE
+pred_rf <- predict(rf_fit, Gas_bs)
+sqrt(mean((Gas_bs$gas - pred_rf)^2))
+```
+```{r}
+# GAM RMSE
+pred_gam <- predict(gam.fit, Gas_bs)
+sqrt(mean((Gas_bs$gas - pred_gam)^2))
+```
+

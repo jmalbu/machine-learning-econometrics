@@ -1,0 +1,252 @@
+---
+title: "Econ 573 Project Mateo"
+author: Juan M. Alvarez
+output:
+  html_document:
+    df_print: paged
+---
+
+# Data Visualization
+
+```{r}
+Gas_raw <- read.csv("C:/Users/mateo/RawData.csv", na.strings = "?", stringsAsFactors = T )
+View(Gas_raw)
+```
+We import our raw data in order to perfoma Data Analysis.
+
+```{r}
+dim(Gas_raw)
+```
+Our data comes from 2020 North Carolina Data at the county level. Since there is 100 counties in north carolina, we have 100 osbservations.
+```{r}
+head(Gas_raw)
+```
+We can visualize the first 6 observations for our dataset
+
+In our Data set, we have a lot of variables that measure similar things. For example, we have various measures that measure population based on different attributes such as Race, age groups, poverty levels, education, urban/rural, etc. We expect these variables to be heavily correlated to each other. 
+
+We also have various employnment measures such as the Average Annual Employment by Place of Work and teh Unemployment Rate. As well as various measures for Income such as Median Household Income, Annual Wages by Place of Work. We're interested to see if these variables capture different areas of gas station density at the county level in north Carolina.
+
+For the purpose of our research, we don't expect all of these variables to play an important role in the regression of gas station as they all measure county-level population and follow the same trends. However, we're interest to see which of these measures is important.
+
+```{r}
+pairs(
+  ~ VOTING + CHILD + POP05 + UPOP + RPOP + FPOV + PPOV + POP, data = Gas_raw
+)
+```
+
+We plot a few of these population measures and observe that indeed, a few of them seem to be correlated. Such as CHILD and UPOP, VOTING and UPOP, or the general measure POP with all of them. 
+
+# Linear Regression 
+
+  
+```{r}
+# Loading our regularized data
+Gas0 <- read.csv("C:/Users/mateo/nc_gas_scaled.csv", na.strings = "?", stringsAsFactors = T)
+# Getting rid of the column with county names.
+Gas <- subset(Gas0, select = -county)
+
+```
+
+```{r}
+View(Gas)
+```
+
+
+```{r}
+# Performing the regression on the model with all the variables. 
+lm.fit <- lm(gas ~ ., data = Gas)
+summary(lm.fit)
+```
+pop, other, child, and prpval were dropped because they are linearly dependent on others. It seems that hips, aaepw, and aiw are the only statistically significant variables. 
+```{r}
+plot(predict(lm.fit), residuals(lm.fit), xlab = "Fitted Values", ylab = "Residuals", pch = 19, cex = 1.2, col = "darkblue")
+# Add horizontal line at 0
+abline(h = 0, col = "red", lwd = 2, lty = 2)
+```
+
+
+```{r}
+# Identifying Problematic Variables; alias tells us which linear combinations from each other.
+
+alias(lm(gas ~ ., data = Gas))
+
+```
+pop, child, other and prpval are causing aliasing, or multiple collinearity.
+
+So, we create a new data set without these variables.
+```{r}
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval"))]
+```
+
+We perform a new linear regression on the new using the new data set. 
+
+```{r}
+lm.fit2 <- lm(gas ~ ., data = Gas)
+summary(lm.fit2)
+```
+By removing, pop, child, other, and ppval we see that linear regression on our model has a higher adjusted Rsquared compared to the previous model (0.9766 >0.976), althouhg its not a lot its an improvement. We see that the variable for the hispanic population retains its statistic importance, while aaepw increase, and aiw gains some statistoc significant at the 0.05 level. 
+
+```{r}
+library(car)
+```
+
+```{r}
+# getting the predictors
+predictors <- Gas[, !(names(Gas) %in% "gas")]
+library(corrplot)
+```
+
+
+```{r}
+# Computing the correlation matrix
+cor_matrix <- cor(predictors, use = "pairwise.complete.obs")
+corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.7, tl.col = "black")
+
+```
+
+We see a lot of heavily correlated variables in our original model. We have a lot problematic variables and there is celarly a collinearity problem in the data. Howerver, we are not abel to get the full scope of the problem by simply inspecting the correlation matrix. There is most likely multicollinearity present in teh data. 
+
+We compute the variance infation factor for all variables to assess multicollinearity.
+
+```{r}
+vif_values <- vif(lm.fit2)
+sorted_vif <- sort(vif_values, decreasing = TRUE)
+print(sorted_vif)
+```
+We observe a serious multicollinearity problem, as we a large amount of variables with values above 100, with some even reaching over 150,000.
+
+We can further remove these variable from our mode and perform another linear regression.
+```{r}
+# Start by removing highest-VIF variable (hs and x9gr)
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval", "hs", "x9gr"))]
+names(Gas)
+```
+
+```{r}
+# Refit and recheck
+lm.fit3 <- lm(gas ~ ., data = Gas)
+summary(lm.fit3)
+```
+we don't get an improvement from our previous model. 
+
+```{r}
+vif_values2 <- vif(lm.fit3)
+sorted_vif2 <- sort(vif_values2, decreasing = TRUE)
+print(sorted_vif2)
+```
+we still have exteme multicollinear variables. We remove the ones with values over 1000.
+
+```{r}
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval", "hs", "x9gr", "voting", "upop", "bach"))]
+names(Gas)
+```
+
+
+```{r}
+lm.fit4 <- lm(gas ~ ., data = Gas)
+summary(lm.fit4)
+```
+We get a minor improvement with adjust rsquared, the same variables remaing significant.
+
+```{r}
+library(car)
+vif_values3 <- vif(lm.fit4)
+sorted_vif3 <- sort(vif_values3, decreasing = TRUE)
+print(sorted_vif3)
+```
+There are still some variables with very high IVF values, however hisp and aaepw appear to be statistifclaly significant such taht the explain a lot of the variance in the regression, so we'll keep them. We remove all variables with over 50 VIF that are not statistifcaly significant.
+
+```{r}
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval", "hs", "x9gr", "voting", "upop", "bach", "awpw", "retax", "shigh", "ppov", "agmort", "noveh", "white", "nomuns", "fpov", "black"))]
+names(Gas)
+```
+```{r}
+lm.fit5 <- lm(gas ~ ., data = Gas)
+summary(lm.fit5)
+```
+We see that rpop, black, munp and crime gain statistical signficance; however, our Adjuste R-squared greatly decreased.
+
+```{r}
+vif_values5 <- vif(lm.fit5)
+sorted_vif5 <- sort(vif_values5, decreasing = TRUE)
+print(sorted_vif5)
+```
+The VIF values for the variables that are left was greatly decreases. There is still mdoerate collinearity (>5) present in the model, we proceed to remove those that aren't statistically significant to compare.
+
+```{r}
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval", "hs", "x9gr", "voting", "upop", "bach", "aaepw", "awpw", "retax", "shigh", "ppov", "agmort", "noveh", "white", "nomuns", "fpov", "black", "capin", "munp", "mhi", "mhv"))]
+names(Gas)
+```
+and perform linear regression on the new model.
+
+```{r}
+lm.fit6 <- lm(gas ~ ., data = Gas)
+summary(lm.fit6)
+```
+munp, rpop, and hisp retain theri statistical signficance, wis and capin gain some, and crime loses its.
+
+```{r}
+vif_values6 <- vif(lm.fit6)
+sorted_vif6 <- sort(vif_values6, decreasing = TRUE)
+print(sorted_vif6)
+```
+Pop05 loses it's statistical significance and we can see has a problematic VIF value, so we remove it.
+
+```{r}
+Gas <- Gas[, !(names(Gas) %in% c("pop", "child", "other", "prpval", "hs", "x9gr", "voting", "upop", "bach", "aaepw", "awpw", "retax", "shigh", "ppov", "agmort", "noveh", "white", "nomuns", "fpov", "black", "capin", "munp", "mhi", "mhv", "pop05"))]
+names(Gas)
+```
+```{r}
+lm.fit7 <- lm(gas ~ ., data = Gas)
+summary(lm.fit7)
+```
+```{r}
+vif_values7 <- vif(lm.fit7)
+sorted_vif7 <- sort(vif_values7, decreasing = TRUE)
+print(sorted_vif7)
+```
+Although we end up with a model thas has a lower Adjusted R-Squared, we now have fixed the issue of having highly correlated variabels. Most of the variables that are left in the model seem to be statistically significant. Out of the 35 predictors we started with, we reduced the model to only having 8 based on their IVF to fixe the multicollinearity present in our model. However, we can try other variable selection methods to compare the values.
+
+```{r}
+library(boot)
+```
+
+
+```{r}
+models <- list(lm.fit, lm.fit2, lm.fit3, lm.fit4, lm.fit5, lm.fit6, lm.fit7)
+
+cv_errors <- sapply(models, function(model) {
+  model_data <- model.frame(model)  # exact data used in that model
+  cv.glm(model_data, glm(formula(model), data = model_data), K=10)$delta[1]
+})
+
+cv_errors
+
+```
+
+```{r}
+train_errors <- sapply(models, function(model) {
+  mean(model$residuals^2)
+})
+
+# Create a comparison table
+results <- data.frame(
+  Model = paste0("lm.fit", c("", 2:7)),
+  CV_Error = cv_errors,
+  Train_MSE = train_errors
+)
+
+print(results)
+```
+
+```{r}
+plot(1:7, cv_errors, type="b", col="blue", pch=16,
+     xlab="Model Number", ylab="10-Fold Cross-Validation Error",
+     main="CV Error Comparison of Linear Models")
+
+lines(1:7, train_errors, type="b", col="red", pch=16)
+legend("topright", legend=c("CV Error", "Training MSE"), col=c("blue", "red"), pch=16)
+
+```
+While lm.fit initially achieved the highest in-sample adjusted R-squared, its cross-validation performance was extremely poor due to severe multicollinearity. As variables with high VIF values were iteratively removed, model performance improved drastically. The fourth iteration (lm.fit4) achieved the lowest 10-fold cross-validated error, suggesting that it balances explanatory power and model stability most effectively. Further reductions in variables beyond this point slightly increased prediction error, indicating potential underfitting.
