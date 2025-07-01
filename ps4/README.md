@@ -1,27 +1,34 @@
-# Problem Set 4 — Resampling and Advanced Regression
+# Problem Set 4
 
-This folder contains all deliverables for Problem Set 4 from ECON 573: Machine Learning and Econometrics.
+This folder contains all deliverables for Problem Set 4.
 
 ---
 
 ## Topics Covered
 
-**Part I**: Resampling Methods & Logistic Regression  
-- Validation set approach vs. LOOCV vs. K-fold CV  
-- Logistic regression with the `Default` dataset  
-- Estimating test error rates through repeated validation  
-- Bootstrap standard error estimation for logistic regression coefficients
+**Part I**: Validation set, LOOCV, and bootstrapping  
+- Described the process and advantages of **K-fold cross-validation** vs. LOOCV  
+- Fitted logistic regression models to predict credit default using `income`, `balance`, and `student` status  
+- Evaluated **test error** across multiple random splits to assess model stability  
+- Compared models with and without the `student` predictor  
+- Used the **bootstrap** to estimate standard errors of logistic regression coefficients  
+- Compared bootstrapped SEs with analytical SEs from `glm` output  
 
-**Part II**: Polynomial and Spline Regression  
-- Fitting polynomial models to explore non-linear relationships  
-- Model selection using cross-validation and residual sum of squares (RSS)  
-- Regression splines using `bs()` from the `splines` package
+**Part II**: Polynomial and spline regression  
+- Fitted polynomial regression of `nox` on `dis` using degrees 1 through 10  
+- Plotted fits and computed **RSS** for each degree  
+- Performed **10-fold CV** to select optimal polynomial degree  
+- Fit regression splines with varying degrees of freedom (df = 3 to 10)  
+- Assessed **in-sample RSS** and **cross-validated test error** to select optimal df  
+- Visualized and interpreted spline smooths, noting diminishing returns in flexibility  
 
-**Part III**: Model Comparison for Salary Prediction  
-- Comparing boosting, OLS, ridge, and lasso using the `Hitters` dataset  
-- Tuning shrinkage parameters in boosting  
-- Evaluating models using test MSE  
-- Feature importance analysis in boosted and bagged models
+**Part III**: Comparing regression models on baseball salary data  
+- Cleaned and log-transformed the *Hitters* dataset  
+- Trained models on first 200 observations, tested on remainder  
+- Compared **boosting**, **bagging**, **OLS**, **ridge**, and **lasso**  
+- Found that **bagging** yielded the lowest test MSE (~0.230), outperforming boosting (~0.285) and penalized regressions  
+- Identified **cumulative career statistics** (e.g., CAtBat, CWalks) as key salary predictors using boosting feature importance  
+- Illustrated test MSE vs. shrinkage rate in boosting and confirmed overfitting at low shrinkage values  
 
 ---
 
@@ -35,5 +42,15 @@ This folder contains all deliverables for Problem Set 4 from ECON 573: Machine L
 
 ## Tools Used
 
-- `R`, `ggplot2`, `dplyr`, `glmnet`, `boot`, `splines`, `randomForest`, `gbm`
+- `R`  
+- `ggplot2` – for data visualization  
+- `dplyr` – for data wrangling  
+- `readr` – for importing CSV files  
+- `boot` – for bootstrapping and cross-validation  
+- `splines` – for regression splines  
+- `gbm` – for boosting  
+- `glmnet` – for ridge and lasso regression  
+- `randomForest` – for bagging  
+- `knitr` – for report generation  
+- `broom`, `tidyverse` – for clean modeling workflows  
 
