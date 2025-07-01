@@ -47,8 +47,13 @@ This folder contains all deliverables for Problem Set 2.
 
 ## Tools Used
 
-- `R`, `ggplot2`, `dplyr`, `readr`, `broom`, `ggthemes`, `patchwork`, `tidyverse`
-
----
+- `R` – primary programming language  
+- `ggplot2` – for data visualization  
+- `dplyr` – for data manipulation and wrangling  
+- `readr` – for reading CSV and tabular data  
+- `broom` – for tidying model output into data frames  
+- `ggthemes` – for applying professional and publication-ready plot themes  
+- `patchwork` – for combining multiple `ggplot2` plots into a single layout  
+- `tidyverse` – for streamlined, cohesive data analysis workflows 
 
 
