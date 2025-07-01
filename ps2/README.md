@@ -1,5 +1,5 @@
 
-# 📄 Problem Set 2 — Regression, Model Evaluation, and Feature Engineering
+# Problem Set 2 — Regression, Model Evaluation, and Feature Engineering
 
 This folder contains all deliverables for Problem Set 2.
 
