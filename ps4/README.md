@@ -27,9 +27,9 @@ This folder contains all deliverables for Problem Set 4.
 
 ## Files
 
+- `instructions.pdf` — Assignment guidelines and questions
 - `ps4.Rmd` — RMarkdown file containing all code and analysis  
 - `ps4.pdf` — Knitted PDF version of the assignment  
-- `instructions.pdf` — Assignment guidelines and questions
 
 ---
 
