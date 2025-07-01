@@ -1,4 +1,4 @@
-# Problem Set 3 — Regularization and Classification Methods
+# Problem Set 3 
 
 This folder contains all deliverables for Problem Set 3.
 
