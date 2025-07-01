@@ -31,8 +31,8 @@ This folder contains all deliverables for Problem Set 3.
 ## Files
 
 - `instructions.pdf` — Original assignment description
-- `ps3.pdf` — Knitted PDF output
 - `ps3.Rmd` — RMarkdown file
+- `ps3.pdf` — Knitted PDF output
 
 ---
 
