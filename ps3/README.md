@@ -30,11 +30,9 @@ This folder contains all deliverables for Problem Set 3.
 
 ## Files
 
-- `part1.Rmd` — RMarkdown file for Part I  
-- `part1.pdf` — Knitted PDF output of Part I  
-- `part2.Rmd` — RMarkdown file for Part II  
-- `part2.pdf` — Knitted PDF output of Part II  
 - `instructions.pdf` — Original assignment description
+- `ps3.pdf` — Knitted PDF output
+- `ps3.Rmd` — RMarkdown file
 
 ---
 
