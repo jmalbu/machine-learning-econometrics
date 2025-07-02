@@ -1,6 +1,11 @@
 # ECON 573 – Machine Learning and Econometrics (Spring 2025)
 
+![R](https://img.shields.io/badge/Language-R-blue)
+![Status](https://img.shields.io/badge/Complete-Yes-brightgreen)
+
 This repository contains all problem sets completed as part of ECON 573: Machine Learning and Econometrics, an advanced undergraduate economics course at the University of North Carolina at Chapel Hill.
+
+> This repository documents my work and progress in ECON 573, reflecting my ability to apply machine learning techniques to real-world economic data using R.
 
 The course is based on the textbook An Introduction to Statistical Learning (ISL) and focuses on applying statistical and machine learning techniques to real-world data using R. The assignments are divided into conceptual exercises, applied programming problems, and model evaluation projects.
 
