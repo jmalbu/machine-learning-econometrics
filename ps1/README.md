@@ -38,7 +38,7 @@ This folder contains all deliverables for Problem Set 1.
 ## Files
 
 - `instructions.pdf` — Assignment instructions
-- `part1.pdf` — Pdf for Part I
+- `part1.pdf` — Written solutions for conceptual questions (Part I)
 - `part2.Rmd` — RMarkdown file for Part II (code)
 - `part2.pdf` — Knitted PDF output of Part II
 - `part3.Rmd` — RMarkdown file for Part III (code)
