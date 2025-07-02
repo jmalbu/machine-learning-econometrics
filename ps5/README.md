@@ -30,8 +30,8 @@ This folder contains all deliverables for Problem Set 5.
 ## Files
 
 - `instructions.pdf` — Assignment instructions and question prompts  
-- `part1_part2.Rmd` — RMarkdown file with code for all exercises  
-- `part1_part2.pdf` — Knitted PDF output of the completed assignment  
+- `ps5.Rmd` — RMarkdown file with code for all exercises  
+- `ps5.pdf` — Knitted PDF output of the completed assignment  
 
 ---
 
